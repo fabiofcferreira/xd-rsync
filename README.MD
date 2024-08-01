@@ -5,6 +5,21 @@ The primary purpose of this tool is to enable businesses who use XD as their ERP
 
 The SNS topics could then feed into many different SQS queues in order for different systems to process the messages at their discretion.
 
+## Setup
+
+```bash
+# Install all dependencies
+go get
+```
+
+## Local replica
+
+The first step is to perform a database dump from XD database. After moving it into the folder [dumps/](/dumps/), run:
+
+```bash
+mysql --max_allowed_packet=256M -h localhost -u root --protocol=tcp --password=root xd < ../../dumps/dumpname.sql
+```
+
 ## But why, though?
 
 Despite supporting different databases engines, XD's Development & CS teams do not encourage their

@@ -1,0 +1,7 @@
+# Ignore local dumps that are used for local testing & development
+dumps/*
+
+# Ignore everything in cmd/main except Golang or JSON files
+cmd/main/*
+!cmd/main/*.go
+!cmd/main/base-config.json

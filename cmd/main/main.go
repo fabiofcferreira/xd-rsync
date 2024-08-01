@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 
-	xd_rsync "github.com/fabiofcferreira/xd-rsync"
+	"github.com/fabiofcferreira/xd-rsync/database"
 	"github.com/fabiofcferreira/xd-rsync/logger"
 	"github.com/spf13/viper"
 )
@@ -22,7 +24,7 @@ func main() {
 		panic(fmt.Errorf("unknown error: %w", err))
 	}
 
-	cfg, err := xd_rsync.GetConfig()
+	cfg, err := GetConfig()
 	if err != nil {
 		panic(err)
 	}
@@ -34,5 +36,19 @@ func main() {
 		panic(fmt.Errorf("logger error: %w", err))
 	}
 
+	dbService := &database.Service{}
+	err = dbService.Init(&database.ServiceInitialisationInput{
+		DSN:    cfg.DSN,
+		Logger: logger,
+	})
+	if err != nil {
+		os.Exit(1)
+	}
+
 	logger.Info("startup_complete", "XD Rsync startup completed", nil)
+
+	// Wait for key press if close on finish is disabled
+	if !cfg.CloseOnFinish {
+		bufio.NewReader(os.Stdin).ReadBytes('\n')
+	}
 }

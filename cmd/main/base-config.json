@@ -1,0 +1,9 @@
+{
+  "environment": "development",
+  "awsRegion": "eu-west-2",
+  "dsn": "root:root@tcp(localhost):3306/xd?charset=utf8mb4&parseTime=True&loc=Local",
+  "queues": {
+    "productUpdatesSnsQueueArn": ""
+  },
+  "closeOnFinish": false
+}

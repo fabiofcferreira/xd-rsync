@@ -1,7 +1,0 @@
-{
-  "environment": "development",
-  "awsRegion": "eu-west-2",
-  "queues": {
-    "productUpdatesSnsQueueArn": ""
-  }
-}

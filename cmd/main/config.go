@@ -1,4 +1,4 @@
-package xd_rsync
+package main
 
 import (
 	"fmt"
@@ -16,7 +16,9 @@ type Config struct {
 	Environment      string        `json:"environment"`
 	IsProductionMode bool          `json:"isProductionMode"`
 	AwsRegion        string        `json:"awsRegion"`
+	DSN              string        `json:"dsn"`
 	Queues           *QueuesConfig `json:"queues"`
+	CloseOnFinish    bool          `json:"closeOnFinish"`
 }
 
 func GetConfig() (*Config, error) {
@@ -43,11 +45,19 @@ func GetConfig() (*Config, error) {
 	}
 	cfg.AwsRegion = awsRegion
 
+	dsn := viper.GetString("dsn")
+	if len(dsn) == 0 {
+		return nil, fmt.Errorf("database URI not specified")
+	}
+	cfg.DSN = dsn
+
 	productUpdatesSnsArn := viper.GetString("queues.productUpdatesSnsQueueArn")
 	if len(productUpdatesSnsArn) == 0 {
 		fmt.Println("🫣 Product updates SNS queue ARN not specified.")
 	}
 	cfg.Queues.ProductUpdatesSnsQueueArn = productUpdatesSnsArn
+
+	cfg.CloseOnFinish = viper.GetBool("closeOnFinish")
 
 	fmt.Println("✅ Configuration validated!")
 	return cfg, nil
