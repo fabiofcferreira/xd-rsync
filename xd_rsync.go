@@ -27,7 +27,7 @@ func (p *XdProduct) GetKnownFields() []string {
 	return columnNames
 }
 
-func (p *XdProduct) GetKnownFieldsSelectors() string {
+func (p *XdProduct) GetKnownFieldsQuerySelectors() string {
 	columnNames := p.GetKnownFields()
 
 	var expression string = ""
@@ -40,4 +40,11 @@ func (p *XdProduct) GetKnownFieldsSelectors() string {
 	}
 
 	return expression
+}
+
+type XdProducts []XdProduct
+
+func (ps *XdProducts) GetKnownFieldsQuerySelectors() string {
+	product := &XdProduct{}
+	return product.GetKnownFieldsQuerySelectors()
 }

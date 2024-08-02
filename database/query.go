@@ -19,5 +19,5 @@ func BuildSelectQuery(selectedFieldsList string, tableName string, conditions []
 		parts = append(parts, "WHERE", strings.Join(encapsulatedConditions, " AND "))
 	}
 
-	return strings.Join(parts, " ")
+	return strings.Join(parts, " ") + ";"
 }
