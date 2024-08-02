@@ -120,7 +120,6 @@ func (s *Service) GetPaginatedPricedProducts(limit int, offset int) (*xd_rsync.X
 func (s *Service) GetPricedProducts() (*xd_rsync.XdProducts, error) {
 	products := &xd_rsync.XdProducts{}
 	pricedProductsCount, _ := s.GetPricedProductsCount()
-	fmt.Println(pricedProductsCount)
 
 	s.logger.Info("init_get_all_priced_products", "Fetching all priced products", &map[string]interface{}{
 		"productsCount": pricedProductsCount,
