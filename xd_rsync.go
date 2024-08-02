@@ -16,7 +16,19 @@ type XdProduct struct {
 	SyncStamp    *time.Time `db:"SyncStamp"`
 }
 
-func (p *XdProduct) GetKnownFields() []string {
+func (p *XdProduct) GetTableName() string {
+	return "items"
+}
+
+func (p *XdProduct) GetPrimaryKeyColumnName() string {
+	val := reflect.ValueOf(p).Elem()
+
+	// Primary key is the first column
+	tag := val.Type().Field(0).Tag
+	return tag.Get("db")
+}
+
+func (p *XdProduct) GetKnownColumns() []string {
 	columnNames := []string{}
 	val := reflect.ValueOf(p).Elem()
 	for i := 0; i < val.NumField(); i++ {
@@ -27,8 +39,8 @@ func (p *XdProduct) GetKnownFields() []string {
 	return columnNames
 }
 
-func (p *XdProduct) GetKnownFieldsQuerySelectors() string {
-	columnNames := p.GetKnownFields()
+func (p *XdProduct) GetKnownColumnsQuerySelectors() string {
+	columnNames := p.GetKnownColumns()
 
 	var expression string = ""
 	for index, name := range columnNames {
@@ -44,7 +56,16 @@ func (p *XdProduct) GetKnownFieldsQuerySelectors() string {
 
 type XdProducts []XdProduct
 
-func (ps *XdProducts) GetKnownFieldsQuerySelectors() string {
+func (ps *XdProducts) GetTableName() string {
+	return "items"
+}
+
+func (ps *XdProducts) GetPrimaryKeyColumnName() string {
 	product := &XdProduct{}
-	return product.GetKnownFieldsQuerySelectors()
+	return product.GetPrimaryKeyColumnName()
+}
+
+func (ps *XdProducts) GetKnownColumnsQuerySelectors() string {
+	product := &XdProduct{}
+	return product.GetKnownColumnsQuerySelectors()
 }
