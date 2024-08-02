@@ -17,7 +17,7 @@ go get
 The first step is to perform a database dump from XD database. After moving it into the folder [dumps/](/dumps/), run:
 
 ```bash
-mysql --max_allowed_packet=256M -h localhost -u root --protocol=tcp --password=root xd < ../../dumps/dumpname.sql
+mysql --max_allowed_packet=256M -h localhost -u root --protocol=tcp --password=root xd < ./dumps/dumpname.sql
 ```
 
 ## But why, though?
