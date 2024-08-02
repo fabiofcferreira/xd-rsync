@@ -17,6 +17,16 @@ go get
 The first step is to perform a database dump from XD database. After moving it into the folder [dumps/](/dumps/), run:
 
 ```bash
+# Start Docker-contained MySQL service
+docker compose up
+
+# Stop database container
+docker compose down
+
+# Reset database container by removing named volumes
+docker compose down -v && docker compose up --force-recreate
+
+# Run dump SQL script against container
 mysql --max_allowed_packet=256M -h localhost -u root --protocol=tcp --password=root xd < ./dumps/dumpname.sql
 ```
 
