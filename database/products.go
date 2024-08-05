@@ -136,11 +136,11 @@ func (s DatabaseClient) GetPricedProducts() (*xd_rsync.XdProducts, error) {
 		"productsCount": pricedProductsCount,
 	})
 
-	chunkSize := int(math.Ceil(float64(pricedProductsCount) / 200))
+	chunksNeeded := int(math.Ceil(float64(pricedProductsCount) / 200))
 	chunkResults := make(map[int]*xd_rsync.XdProducts)
 	wg := sync.WaitGroup{}
 
-	for chunkNumber := 0; chunkNumber < chunkSize; chunkNumber++ {
+	for chunkNumber := 0; chunkNumber < chunksNeeded; chunkNumber++ {
 		wg.Add(1)
 
 		go func() {
@@ -158,7 +158,7 @@ func (s DatabaseClient) GetPricedProducts() (*xd_rsync.XdProducts, error) {
 
 	wg.Wait()
 
-	for chunkNumber := 0; chunkNumber <= chunkSize; chunkNumber++ {
+	for chunkNumber := 0; chunkNumber < chunksNeeded; chunkNumber++ {
 		*products = append(*products, *chunkResults[chunkNumber]...)
 	}
 
@@ -177,11 +177,12 @@ func (s DatabaseClient) GetPricedProductsSinceTimestamp(ts *time.Time) (*xd_rsyn
 		"minimumTimestamp": ts,
 	})
 
-	chunkSize := int(math.Ceil(float64(pricedProductsCount) / 200))
+	chunksNeeded := int(math.Ceil(float64(pricedProductsCount) / 200))
+	fmt.Println("chunk", chunksNeeded)
 	chunkResults := make(map[int]*xd_rsync.XdProducts)
 	wg := sync.WaitGroup{}
 
-	for chunkNumber := 0; chunkNumber < chunkSize; chunkNumber++ {
+	for chunkNumber := 0; chunkNumber < chunksNeeded; chunkNumber++ {
 		wg.Add(1)
 
 		go func() {
@@ -200,7 +201,7 @@ func (s DatabaseClient) GetPricedProductsSinceTimestamp(ts *time.Time) (*xd_rsyn
 
 	wg.Wait()
 
-	for chunkNumber := 0; chunkNumber <= chunkSize; chunkNumber++ {
+	for chunkNumber := 0; chunkNumber < chunksNeeded; chunkNumber++ {
 		*products = append(*products, *chunkResults[chunkNumber]...)
 	}
 
