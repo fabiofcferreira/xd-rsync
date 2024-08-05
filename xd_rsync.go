@@ -1,6 +1,10 @@
 package xd_rsync
 
-import "github.com/fabiofcferreira/xd-rsync/logger"
+import (
+	"time"
+
+	"github.com/fabiofcferreira/xd-rsync/logger"
+)
 
 type QueuesConfig struct {
 	ProductUpdatesSnsQueueArn string `json:"productUpdatesSnsQueueArn,omitempty"`
@@ -12,7 +16,7 @@ type Config struct {
 	AwsRegion        string        `json:"awsRegion"`
 	DSN              string        `json:"dsn"`
 	Queues           *QueuesConfig `json:"queues"`
-	CloseOnFinish    bool          `json:"closeOnFinish"`
+	SyncFrequency    time.Duration `json:"syncFrequency"`
 }
 
 type XdRsyncServices struct {

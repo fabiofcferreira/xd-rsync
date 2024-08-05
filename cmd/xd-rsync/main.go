@@ -12,7 +12,7 @@ import (
 )
 
 func rsyncInDaemonMode(app *xd_rsync.XdRsyncInstance) {
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(app.Config.SyncFrequency)
 	done := make(chan bool)
 
 	var lastCheckTimestamp *time.Time = nil

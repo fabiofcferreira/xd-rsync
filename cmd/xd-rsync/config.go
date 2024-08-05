@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	xd_rsync "github.com/fabiofcferreira/xd-rsync"
 	"github.com/spf13/viper"
@@ -29,7 +30,6 @@ func GetConfig() (*xd_rsync.Config, error) {
 	awsRegion := viper.GetString("awsRegion")
 	if len(awsRegion) == 0 {
 		fmt.Println("🫣 AWS region not specified. Defaulting to 'eu-west-2'")
-		viper.Set("awsRegion", "eu-west-2")
 	}
 	cfg.AwsRegion = awsRegion
 
@@ -45,8 +45,16 @@ func GetConfig() (*xd_rsync.Config, error) {
 	}
 	cfg.Queues.ProductUpdatesSnsQueueArn = productUpdatesSnsArn
 
-	cfg.CloseOnFinish = viper.GetBool("closeOnFinish")
+	parsedSyncFrequency, err := time.ParseDuration(viper.GetString("syncFrequency"))
+	if err == nil {
+		cfg.SyncFrequency = parsedSyncFrequency
+		fmt.Println("🫣 Sync frequency is invalid. Defaulting to 5 minutes")
+	} else {
+		cfg.SyncFrequency = 5 * time.Minute
+	}
 
 	fmt.Println("✅ Configuration validated!")
+	fmt.Printf("⏳ Synchronisation configured to run every %s\n", cfg.SyncFrequency.String())
+
 	return cfg, nil
 }
