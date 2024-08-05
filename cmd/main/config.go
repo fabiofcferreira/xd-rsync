@@ -3,27 +3,15 @@ package main
 import (
 	"fmt"
 
+	xd_rsync "github.com/fabiofcferreira/xd-rsync"
 	"github.com/spf13/viper"
 )
 
 var ENVIRONMENTS = []string{"development", "staging", "production"}
 
-type QueuesConfig struct {
-	ProductUpdatesSnsQueueArn string `json:"productUpdatesSnsQueueArn,omitempty"`
-}
-
-type Config struct {
-	Environment      string        `json:"environment"`
-	IsProductionMode bool          `json:"isProductionMode"`
-	AwsRegion        string        `json:"awsRegion"`
-	DSN              string        `json:"dsn"`
-	Queues           *QueuesConfig `json:"queues"`
-	CloseOnFinish    bool          `json:"closeOnFinish"`
-}
-
-func GetConfig() (*Config, error) {
-	cfg := &Config{
-		Queues: &QueuesConfig{},
+func GetConfig() (*xd_rsync.Config, error) {
+	cfg := &xd_rsync.Config{
+		Queues: &xd_rsync.QueuesConfig{},
 	}
 
 	environment := viper.GetString("environment")

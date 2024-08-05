@@ -1,14 +1,78 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
+	"time"
 
+	xd_rsync "github.com/fabiofcferreira/xd-rsync"
+	"github.com/fabiofcferreira/xd-rsync/aws/sns"
 	"github.com/fabiofcferreira/xd-rsync/database"
 	"github.com/fabiofcferreira/xd-rsync/logger"
 	"github.com/spf13/viper"
 )
+
+func rsyncInDaemonMode(app *xd_rsync.XdRsyncInstance) {
+	ticker := time.NewTicker(1 * time.Minute)
+	done := make(chan bool)
+
+	var lastCheckTimestamp *time.Time = nil
+	go func() {
+		for {
+			<-ticker.C
+
+			app.Logger.Info("init_send_changed_products_events", "Starting process to send events for updated products", &map[string]interface{}{
+				"minimumUpdatedAt": lastCheckTimestamp,
+			})
+
+			products, err := app.Services.Database.GetPricedProductsSinceTimestamp(lastCheckTimestamp)
+			now := time.Now()
+			lastCheckTimestamp = &now
+			if err != nil {
+				app.Logger.Error("failed_get_priced_products", "Failed to get priced products", &map[string]interface{}{
+					"error": err,
+				})
+				continue
+			}
+
+			updatedProductsEvents := []string{}
+			for _, product := range *products {
+				productDto, err := product.ToJSON()
+				if err != nil {
+					app.Logger.Error("failed_get_product_dto", "Failed to get product DTO for SNS topic message", &map[string]interface{}{
+						"error":   err,
+						"product": product,
+					})
+					continue
+				}
+
+				updatedProductsEvents = append(updatedProductsEvents, productDto)
+			}
+
+			app.Logger.Info("count_changed_products_events", "Got all changed product events", &map[string]interface{}{
+				"changedProductsCount": len(updatedProductsEvents),
+			})
+
+			if len(updatedProductsEvents) == 0 {
+				app.Logger.Info("skip_send_changed_products_events", "No products were changed since last check", nil)
+				continue
+			}
+
+			successfulMessages, errors := app.Services.SNS.SendMessagesBatch(app.Config.Queues.ProductUpdatesSnsQueueArn, updatedProductsEvents)
+			if len(errors) > 0 {
+				app.Logger.Info("failed_changed_product_events", "Failed to publish updated product event", &map[string]interface{}{
+					"error": errors,
+				})
+			}
+
+			app.Logger.Info("finished_changed_product_events", "Finished sending changed products' events", &map[string]interface{}{
+				"changedProductsCount":    len(updatedProductsEvents),
+				"successfulMessagesCount": successfulMessages,
+			})
+		}
+	}()
+
+	done <- true
+}
 
 func main() {
 	viper.SetConfigName("config")
@@ -36,19 +100,34 @@ func main() {
 		panic(fmt.Errorf("logger error: %w", err))
 	}
 
-	dbService := &database.Service{}
-	err = dbService.Init(&database.ServiceInitialisationInput{
+	app := &xd_rsync.XdRsyncInstance{
+		Config:   cfg,
+		Logger:   logger,
+		Services: &xd_rsync.XdRsyncServices{},
+	}
+
+	dbService, err := database.CreateClient(&database.DatabaseClientCreationInput{
 		DSN:    cfg.DSN,
 		Logger: logger,
 	})
 	if err != nil {
-		os.Exit(1)
+		panic(err)
 	}
 
-	logger.Info("startup_complete", "XD Rsync startup completed", nil)
+	app.Services.Database = dbService
 
-	// Wait for key press if close on finish is disabled
-	if !cfg.CloseOnFinish {
-		bufio.NewReader(os.Stdin).ReadBytes('\n')
+	snsClient, err := sns.CreateClient(&sns.SNSClientCreationInput{
+		Region: cfg.AwsRegion,
+		Logger: logger,
+	})
+	if err != nil {
+		panic(err)
 	}
+
+	app.Services.SNS = snsClient
+
+	app.Logger.Info("startup_complete", "XD Rsync startup completed", nil)
+
+	rsyncInDaemonMode(app)
+	app.Logger.Info("init_shutdown", "XD Rsync shutdown", nil)
 }

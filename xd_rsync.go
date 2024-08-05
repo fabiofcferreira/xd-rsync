@@ -1,71 +1,27 @@
 package xd_rsync
 
-import (
-	"reflect"
-	"time"
-)
+import "github.com/fabiofcferreira/xd-rsync/logger"
 
-type XdProduct struct {
-	KeyId        string     `db:"KeyId"`
-	Description  string     `db:"Description"`
-	ShortName1   string     `db:"ShortName1"`
-	RetailPrice1 float64    `db:"RetailPrice1"`
-	RetailPrice2 float64    `db:"RetailPrice2"`
-	RetailPrice3 float64    `db:"RetailPrice3"`
-	CurrentStock float64    `db:"CurrentStock"`
-	SyncStamp    *time.Time `db:"SyncStamp"`
+type QueuesConfig struct {
+	ProductUpdatesSnsQueueArn string `json:"productUpdatesSnsQueueArn,omitempty"`
 }
 
-func (p *XdProduct) GetTableName() string {
-	return "items"
+type Config struct {
+	Environment      string        `json:"environment"`
+	IsProductionMode bool          `json:"isProductionMode"`
+	AwsRegion        string        `json:"awsRegion"`
+	DSN              string        `json:"dsn"`
+	Queues           *QueuesConfig `json:"queues"`
+	CloseOnFinish    bool          `json:"closeOnFinish"`
 }
 
-func (p *XdProduct) GetPrimaryKeyColumnName() string {
-	val := reflect.ValueOf(p).Elem()
-
-	// Primary key is the first column
-	tag := val.Type().Field(0).Tag
-	return tag.Get("db")
+type XdRsyncServices struct {
+	Database DatabaseService
+	SNS      SNSService
 }
 
-func (p *XdProduct) GetKnownColumns() []string {
-	columnNames := []string{}
-	val := reflect.ValueOf(p).Elem()
-	for i := 0; i < val.NumField(); i++ {
-		tag := val.Type().Field(i).Tag
-		columnNames = append(columnNames, tag.Get("db"))
-	}
-
-	return columnNames
-}
-
-func (p *XdProduct) GetKnownColumnsQuerySelectors() string {
-	columnNames := p.GetKnownColumns()
-
-	var expression string = ""
-	for index, name := range columnNames {
-		expression += name
-
-		if index < len(columnNames)-1 {
-			expression += ", "
-		}
-	}
-
-	return expression
-}
-
-type XdProducts []XdProduct
-
-func (ps *XdProducts) GetTableName() string {
-	return "items"
-}
-
-func (ps *XdProducts) GetPrimaryKeyColumnName() string {
-	product := &XdProduct{}
-	return product.GetPrimaryKeyColumnName()
-}
-
-func (ps *XdProducts) GetKnownColumnsQuerySelectors() string {
-	product := &XdProduct{}
-	return product.GetKnownColumnsQuerySelectors()
+type XdRsyncInstance struct {
+	Config   *Config
+	Logger   *logger.Logger
+	Services *XdRsyncServices
 }

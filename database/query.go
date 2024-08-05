@@ -7,11 +7,11 @@ import (
 
 const COUNT_DEFAULT_EXPRESSION = "count(*)"
 
-func BuildCountExpression(columnName string) string {
+func buildCountExpression(columnName string) string {
 	return "count(" + columnName + ")"
 }
 
-func BuildSelectQuery(selectedFieldsList string, tableName string, conditions []string) string {
+func buildSelectQuery(selectedFieldsList string, tableName string, conditions []string) string {
 	clauses := []string{
 		"SELECT",
 		selectedFieldsList,
@@ -31,7 +31,7 @@ func BuildSelectQuery(selectedFieldsList string, tableName string, conditions []
 	return strings.Join(clauses, " ") + ";"
 }
 
-func BuildSelectQueryWithEndClauses(selectedFieldsList string, tableName string, conditions []string, endClauses []string) string {
+func buildSelectQueryWithEndClauses(selectedFieldsList string, tableName string, conditions []string, endClauses []string) string {
 	clauses := []string{
 		"SELECT",
 		selectedFieldsList,
@@ -55,10 +55,10 @@ func BuildSelectQueryWithEndClauses(selectedFieldsList string, tableName string,
 	return strings.Join(clauses, " ") + ";"
 }
 
-func BuildLimitExpression(limit int) string {
+func buildLimitExpression(limit int) string {
 	return "LIMIT " + strconv.Itoa(limit)
 }
 
-func BuildLimitOffsetExpression(limit int, offset int) string {
+func buildLimitOffsetExpression(limit int, offset int) string {
 	return "LIMIT " + strconv.Itoa(limit) + " OFFSET " + strconv.Itoa(offset)
 }

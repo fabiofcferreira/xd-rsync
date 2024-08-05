@@ -1,14 +1,12 @@
 package xd_rsync
 
-import "github.com/fabiofcferreira/xd-rsync/logger"
-
-type ServiceInitialisationInput struct {
-	DSN    string
-	Logger *logger.Logger
-}
+import "time"
 
 type DatabaseService interface {
-	Init(input *ServiceInitialisationInput) error
-
-	GetProductByReferece(id string) (XdProduct, error)
+	GetProductByReferece(id string) (*XdProduct, error)
+	GetProductsByReferece(ids []string) (*XdProducts, error)
+	GetPricedProductsCount(ts *time.Time) (int, error)
+	GetPaginatedPricedProducts(ts *time.Time, limit int, offset int) (*XdProducts, error)
+	GetPricedProducts() (*XdProducts, error)
+	GetPricedProductsSinceTimestamp(ts *time.Time) (*XdProducts, error)
 }
