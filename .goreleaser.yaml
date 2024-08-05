@@ -1,13 +1,12 @@
 version: 2
 
-main: ./cmd/xd-rsync
-
 before:
   hooks:
     - go mod tidy
 
 builds:
   - env:
+    main: ./cmd/xd-rsync
       - CGO_ENABLED=0
     goos:
       - linux
