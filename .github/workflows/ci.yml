@@ -18,8 +18,11 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      - name: Install goreleaser
-        run: go install github.com/goreleaser/goreleaser/v2@latest
-
-      - name: Build
-        run: goreleaser release --snapshot --clean
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "latest"
+          args: release --snapshot --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
