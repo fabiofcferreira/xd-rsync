@@ -6,8 +6,8 @@ before:
 
 builds:
   - env:
-    main: ./cmd/xd-rsync
       - CGO_ENABLED=0
+    main: ./cmd/xd-rsync/*go
     goos:
       - linux
       - windows
