@@ -5,3 +5,6 @@ dumps/*
 cmd/main/*
 !cmd/main/*.go
 !cmd/main/base-config.json
+
+# Distributables
+dist/
