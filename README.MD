@@ -9,7 +9,14 @@ The SNS topics could then feed into many different SQS queues in order for diffe
 
 ```bash
 # Install all dependencies
-go get
+go mod download
+
+# Move to application entrypoint
+cd cmd/xd-rsync
+
+# Build & test xd-rsync
+go build && ./xd-rsync
+
 ```
 
 ## Local replica
