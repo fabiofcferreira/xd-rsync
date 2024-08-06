@@ -5,7 +5,41 @@ The primary purpose of this tool is to enable businesses who use XD as their ERP
 
 The SNS topics could then feed into many different SQS queues in order for different systems to process the messages at their discretion.
 
-## Setup
+## Usage
+
+### Prerequisites
+
+1. Have an instance of XD ERP running alongside its local database.
+2. Create `config.json` in the same folder where xd-rsync is going to be executed.
+
+### Config example
+
+```json
+{
+  "environment": "development",
+  "awsRegion": "eu-west-2",
+  // Database DSN for the xd-rsync client to be able to connect
+  "dsn": "root:root@tcp(localhost:3306)/xd?charset=utf8mb4&parseTime=True&loc=Local",
+  "queues": {
+    // SNS topic for product updates to be published
+    "productUpdatesSnsQueueArn": ""
+  },
+  "datadog": {
+    // Datadog API key
+    "apiKey": "<INSERT_DATADOG_KEY_HERE>",
+
+    // Insert fields that all events should contain
+    "eventBaseFields": {
+      "customEventProperty": "value"
+    }
+  },
+  "syncFrequency": "5m" // Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+}
+```
+
+## Development
+
+### Setup
 
 ```bash
 # Install all dependencies
@@ -19,7 +53,7 @@ go build && ./xd-rsync
 
 ```
 
-## Local replica
+### Local replica
 
 The first step is to perform a database dump from XD database. After moving it into the folder [dumps/](/dumps/), run:
 
@@ -37,7 +71,7 @@ docker compose down -v && docker compose up --force-recreate
 mysql --max_allowed_packet=256M -h localhost -u root --protocol=tcp --password=root xd < ./dumps/dumpname.sql
 ```
 
-## But why, though?
+## Why use xd-rsync?
 
 Despite supporting different databases engines, XD's Development & CS teams do not encourage their
 clients to host their databases on the cloud but rather OnPrem (on-premises).
