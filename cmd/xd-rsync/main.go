@@ -101,20 +101,24 @@ func main() {
 		Logger: logger,
 	})
 	if err != nil {
-		panic(err)
+		app.Logger.Fatal("failed_to_create__client", "Failed to create  client", &map[string]interface{}{
+			"error": err,
+		})
+	} else {
+		app.Services.Database = dbService
 	}
-
-	app.Services.Database = dbService
 
 	snsClient, err := sns.CreateClient(&sns.SNSClientCreationInput{
 		Region: cfg.AwsRegion,
 		Logger: logger,
 	})
-	if err != nil {
-		panic(err)
+	if err == nil {
+		app.Logger.Fatal("failed_to_create__client", "Failed to create  client", &map[string]interface{}{
+			"error": err,
+		})
+	} else {
+		app.Services.SNS = snsClient
 	}
-
-	app.Services.SNS = snsClient
 
 	app.Logger.Info("startup_complete", "XD Rsync startup completed", nil)
 

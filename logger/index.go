@@ -65,7 +65,7 @@ func CreateLogger(opts *LoggerOptions) (*Logger, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not create logger: %w", err)
 	}
 
 	logger.eventBaseFields = opts.InitialFields
