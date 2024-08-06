@@ -29,6 +29,8 @@ Customise your configuration file (`config.json`) according to your needs.
     "productUpdatesSnsQueueArn": ""
   },
   "datadog": {
+    // Datadog custom host
+    "ingestHost": "http-intake.logs.datadoghq.eu",
     // Datadog API key
     "apiKey": "<INSERT_DATADOG_KEY_HERE>",
 
