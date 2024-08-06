@@ -6,6 +6,7 @@
     "productUpdatesSnsQueueArn": ""
   },
   "datadog": {
+    "ingestHost": "http-intake.logs.datadoghq.eu",
     "apiKey": "<INSERT_DATADOG_KEY_HERE>",
     "eventBaseFields": {
       "customEventProperty": "value"

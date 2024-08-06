@@ -81,9 +81,10 @@ func main() {
 
 	logger, err := logger.CreateLogger(
 		&logger.LoggerOptions{
-			IsProduction:  cfg.IsProductionMode,
-			InitialFields: *cfg.DatadogConfig.EventBaseFields,
-			DatadogApiKey: cfg.DatadogConfig.DatadogApiKey,
+			IsProduction:      cfg.IsProductionMode,
+			InitialFields:     *cfg.DatadogConfig.EventBaseFields,
+			DatadogIngestHost: cfg.DatadogConfig.IngestHost,
+			DatadogApiKey:     cfg.DatadogConfig.ApiKey,
 		})
 	if err != nil {
 		panic(fmt.Errorf("logger error: %w", err))

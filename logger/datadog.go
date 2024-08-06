@@ -49,10 +49,11 @@ func (c DatadogIngestClient) SendEvent(eventDetails map[string]interface{}) erro
 	return err
 }
 
-func createDatadogIngestClient(apiKey string) (*DatadogIngestClient, error) {
-	ingestUrl, err := url.Parse("https://http-intake.logs.datadoghq.eu/api/v2/logs")
-	if err != nil {
-		return nil, fmt.Errorf("could not create ingest url: %s", err)
+func createDatadogIngestClient(host, apiKey string) (*DatadogIngestClient, error) {
+	ingestUrl := url.URL{
+		Scheme: "https",
+		Host:   host,
+		Path:   "/api/v2/logs",
 	}
 
 	queryParams := ingestUrl.Query()

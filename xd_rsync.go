@@ -11,7 +11,8 @@ type QueuesConfig struct {
 }
 
 type DatadogConfig struct {
-	DatadogApiKey   *string                 `json:"datadogApiKey"`
+	IngestHost      *string                 `json:"ingestHost"`
+	ApiKey          *string                 `json:"datadogApiKey"`
 	EventBaseFields *map[string]interface{} `json:"eventBaseFields"`
 }
 

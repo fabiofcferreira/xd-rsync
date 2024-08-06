@@ -1,6 +1,8 @@
 package logger
 
 import (
+	"fmt"
+
 	"go.uber.org/zap"
 )
 
@@ -46,9 +48,10 @@ func CreateDevelopmentLogger(initialFields map[string]interface{}) (*Logger, err
 }
 
 type LoggerOptions struct {
-	IsProduction  bool
-	InitialFields map[string]interface{}
-	DatadogApiKey *string
+	IsProduction      bool
+	InitialFields     map[string]interface{}
+	DatadogApiKey     *string
+	DatadogIngestHost *string
 }
 
 func CreateLogger(opts *LoggerOptions) (*Logger, error) {
@@ -67,8 +70,19 @@ func CreateLogger(opts *LoggerOptions) (*Logger, error) {
 
 	logger.eventBaseFields = opts.InitialFields
 
-	if opts.DatadogApiKey != nil && len(*opts.DatadogApiKey) > 0 {
-		logger.datadogClient, err = createDatadogIngestClient(*opts.DatadogApiKey)
+	isDatadogIngestHostValid := opts.DatadogIngestHost != nil && len(*opts.DatadogIngestHost) > 0
+	isDatadogApiKeyValid := opts.DatadogApiKey != nil && len(*opts.DatadogApiKey) > 0
+
+	if !isDatadogIngestHostValid && isDatadogApiKeyValid {
+		fmt.Println("⚠️ Datadog ingest host was not provided. Datadog ingestion is disabled!")
+	}
+
+	if isDatadogIngestHostValid && !isDatadogApiKeyValid {
+		fmt.Println("⚠️ Datadog API key was not provided. Datadog ingestion is disabled!")
+	}
+
+	if isDatadogIngestHostValid && isDatadogApiKeyValid {
+		logger.datadogClient, err = createDatadogIngestClient(*opts.DatadogIngestHost, *opts.DatadogApiKey)
 		if err != nil {
 			return nil, err
 		}

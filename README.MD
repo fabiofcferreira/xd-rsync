@@ -14,6 +14,10 @@ The SNS topics could then feed into many different SQS queues in order for diffe
 
 ### Config example
 
+Customise your configuration file (`config.json`) according to your needs.
+
+[Datadog ingest URLs can be found on their documentation.](https://docs.datadoghq.com/logs/log_collection/?tab=host#supported-endpoints)
+
 ```json
 {
   "environment": "development",

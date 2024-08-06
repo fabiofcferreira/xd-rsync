@@ -76,9 +76,14 @@ func GetConfig() (*xd_rsync.Config, error) {
 		fmt.Println("🫣 Sync frequency is invalid. Defaulting to 5 minutes")
 	}
 
+	ingestHost := viper.GetString("datadog.ingestHost")
+	if len(ingestHost) > 0 {
+		cfg.DatadogConfig.IngestHost = &ingestHost
+	}
+
 	datadogApiKey := viper.GetString("datadog.apiKey")
 	if len(datadogApiKey) > 0 {
-		cfg.DatadogConfig.DatadogApiKey = &datadogApiKey
+		cfg.DatadogConfig.ApiKey = &datadogApiKey
 	}
 
 	parsedEventBaseFields := viper.GetStringMapString("datadog.eventBaseFields")
