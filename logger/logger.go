@@ -15,6 +15,7 @@ type Logger struct {
 func (txLogger *Logger) Debug(event_type string, message string, extraFields *map[string]interface{}) {
 	eventPayload := map[string]interface{}{
 		"event_type": event_type,
+		"level":      "debug",
 	}
 
 	if extraFields != nil {
@@ -34,6 +35,7 @@ func (txLogger *Logger) Debug(event_type string, message string, extraFields *ma
 func (txLogger *Logger) Info(event_type string, message string, extraFields *map[string]interface{}) {
 	eventPayload := map[string]interface{}{
 		"event_type": event_type,
+		"level":      "info",
 	}
 
 	if extraFields != nil {
@@ -52,6 +54,7 @@ func (txLogger *Logger) Info(event_type string, message string, extraFields *map
 func (txLogger *Logger) Warn(event_type string, message string, extraFields *map[string]interface{}) {
 	eventPayload := map[string]interface{}{
 		"event_type": event_type,
+		"level":      "warn",
 	}
 
 	if extraFields != nil {
@@ -70,6 +73,7 @@ func (txLogger *Logger) Warn(event_type string, message string, extraFields *map
 func (txLogger *Logger) Error(event_type string, message string, extraFields *map[string]interface{}) {
 	eventPayload := map[string]interface{}{
 		"event_type": event_type,
+		"level":      "error",
 	}
 
 	if extraFields != nil {
@@ -88,6 +92,7 @@ func (txLogger *Logger) Error(event_type string, message string, extraFields *ma
 func (txLogger *Logger) Fatal(event_type string, message string, extraFields *map[string]interface{}) {
 	eventPayload := map[string]interface{}{
 		"event_type": event_type,
+		"level":      "fatal",
 	}
 
 	if extraFields != nil {
