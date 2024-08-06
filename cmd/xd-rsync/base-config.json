@@ -5,5 +5,11 @@
   "queues": {
     "productUpdatesSnsQueueArn": ""
   },
+  "datadog": {
+    "apiKey": "<INSERT_DATADOG_KEY_HERE>",
+    "eventBaseFields": {
+      "customEventProperty": "value"
+    }
+  },
   "syncFrequency": "5m"
 }

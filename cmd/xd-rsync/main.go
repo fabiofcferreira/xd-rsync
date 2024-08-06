@@ -8,7 +8,6 @@ import (
 	"github.com/fabiofcferreira/xd-rsync/aws/sns"
 	"github.com/fabiofcferreira/xd-rsync/database"
 	"github.com/fabiofcferreira/xd-rsync/logger"
-	"github.com/spf13/viper"
 )
 
 func rsyncInDaemonMode(app *xd_rsync.XdRsyncInstance) {
@@ -75,27 +74,17 @@ func rsyncInDaemonMode(app *xd_rsync.XdRsyncInstance) {
 }
 
 func main() {
-	viper.SetConfigName("config")
-	viper.SetConfigType("json")
-	viper.AddConfigPath(".")
-
-	err := viper.ReadInConfig()
-	if err != nil {
-		if _, isNotFoundError := err.(viper.ConfigFileNotFoundError); isNotFoundError {
-			panic(fmt.Errorf("config file (config.json) was not found"))
-		}
-
-		panic(fmt.Errorf("unknown error: %w", err))
-	}
-
 	cfg, err := GetConfig()
 	if err != nil {
 		panic(err)
 	}
 
-	logger, err := logger.CreateLogger(cfg.IsProductionMode, map[string]interface{}{
-		"app_name": "xd_rsync",
-	})
+	logger, err := logger.CreateLogger(
+		&logger.LoggerOptions{
+			IsProduction:  cfg.IsProductionMode,
+			InitialFields: *cfg.DatadogConfig.EventBaseFields,
+			DatadogApiKey: cfg.DatadogConfig.DatadogApiKey,
+		})
 	if err != nil {
 		panic(fmt.Errorf("logger error: %w", err))
 	}

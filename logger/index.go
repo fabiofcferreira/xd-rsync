@@ -4,55 +4,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type Logger struct {
-	instance *zap.Logger
-}
-
-func (txLogger *Logger) Debug(event_type string, message string, extraFields *map[string]interface{}) {
-	fields := mapExtraFieldsToZap(map[string]interface{}{})
-	if extraFields != nil {
-		fields = mapExtraFieldsToZap(*extraFields)
-	}
-
-	txLogger.instance.Debug(message, *fields...)
-}
-
-func (txLogger *Logger) Info(event_type string, message string, extraFields *map[string]interface{}) {
-	fields := mapExtraFieldsToZap(map[string]interface{}{})
-	if extraFields != nil {
-		fields = mapExtraFieldsToZap(*extraFields)
-	}
-
-	txLogger.instance.Info(message, *fields...)
-}
-
-func (txLogger *Logger) Warn(event_type string, message string, extraFields *map[string]interface{}) {
-	fields := mapExtraFieldsToZap(map[string]interface{}{})
-	if extraFields != nil {
-		fields = mapExtraFieldsToZap(*extraFields)
-	}
-
-	txLogger.instance.Warn(message, *fields...)
-}
-
-func (txLogger *Logger) Error(event_type string, message string, extraFields *map[string]interface{}) {
-	fields := mapExtraFieldsToZap(map[string]interface{}{})
-	if extraFields != nil {
-		fields = mapExtraFieldsToZap(*extraFields)
-	}
-
-	txLogger.instance.Error(message, *fields...)
-}
-
-func (txLogger *Logger) Fatal(event_type string, message string, extraFields *map[string]interface{}) {
-	fields := mapExtraFieldsToZap(map[string]interface{}{})
-	if extraFields != nil {
-		fields = mapExtraFieldsToZap(*extraFields)
-	}
-
-	txLogger.instance.Fatal(message, *fields...)
-}
-
 func CreateProductionLogger(initialFields map[string]interface{}) (*Logger, error) {
 	config := zap.NewProductionConfig()
 
@@ -61,7 +12,7 @@ func CreateProductionLogger(initialFields map[string]interface{}) (*Logger, erro
 	config.Development = false
 
 	config.InitialFields = initialFields
-	config.InitialFields["environment"] = "production"
+	config.InitialFields["loggerMode"] = "production"
 
 	logger, err := config.Build()
 	if err != nil {
@@ -82,7 +33,7 @@ func CreateDevelopmentLogger(initialFields map[string]interface{}) (*Logger, err
 	config.Development = true
 
 	config.InitialFields = initialFields
-	config.InitialFields["environment"] = "development"
+	config.InitialFields["loggerMode"] = "development"
 
 	logger, err := config.Build()
 	if err != nil {
@@ -94,10 +45,34 @@ func CreateDevelopmentLogger(initialFields map[string]interface{}) (*Logger, err
 	}, nil
 }
 
-func CreateLogger(isProduction bool, initialFields map[string]interface{}) (*Logger, error) {
-	if isProduction {
-		return CreateProductionLogger(initialFields)
+type LoggerOptions struct {
+	IsProduction  bool
+	InitialFields map[string]interface{}
+	DatadogApiKey *string
+}
+
+func CreateLogger(opts *LoggerOptions) (*Logger, error) {
+	var logger *Logger
+	var err error
+
+	if opts.IsProduction {
+		logger, err = CreateProductionLogger(opts.InitialFields)
+	} else {
+		logger, err = CreateDevelopmentLogger(opts.InitialFields)
 	}
 
-	return CreateDevelopmentLogger(initialFields)
+	if err != nil {
+		return nil, err
+	}
+
+	logger.eventBaseFields = opts.InitialFields
+
+	if opts.DatadogApiKey != nil && len(*opts.DatadogApiKey) > 0 {
+		logger.datadogClient, err = createDatadogIngestClient(*opts.DatadogApiKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return logger, nil
 }

@@ -10,9 +10,32 @@ import (
 
 var ENVIRONMENTS = []string{"development", "staging", "production"}
 
+func loadConfig() error {
+	viper.SetConfigName("config")
+	viper.SetConfigType("json")
+	viper.AddConfigPath(".")
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		if _, isNotFoundError := err.(viper.ConfigFileNotFoundError); isNotFoundError {
+			panic(fmt.Errorf("config file (config.json) was not found"))
+		}
+
+		panic(fmt.Errorf("unknown error: %w", err))
+	}
+
+	return nil
+}
+
 func GetConfig() (*xd_rsync.Config, error) {
+	err := loadConfig()
+	if err != nil {
+		return nil, err
+	}
+
 	cfg := &xd_rsync.Config{
-		Queues: &xd_rsync.QueuesConfig{},
+		Queues:        &xd_rsync.QueuesConfig{},
+		DatadogConfig: &xd_rsync.DatadogConfig{},
 	}
 
 	environment := viper.GetString("environment")
@@ -48,9 +71,24 @@ func GetConfig() (*xd_rsync.Config, error) {
 	parsedSyncFrequency, err := time.ParseDuration(viper.GetString("syncFrequency"))
 	if err == nil {
 		cfg.SyncFrequency = parsedSyncFrequency
-		fmt.Println("🫣 Sync frequency is invalid. Defaulting to 5 minutes")
 	} else {
 		cfg.SyncFrequency = 5 * time.Minute
+		fmt.Println("🫣 Sync frequency is invalid. Defaulting to 5 minutes")
+	}
+
+	datadogApiKey := viper.GetString("datadog.apiKey")
+	if len(datadogApiKey) > 0 {
+		cfg.DatadogConfig.DatadogApiKey = &datadogApiKey
+	}
+
+	parsedEventBaseFields := viper.GetStringMapString("datadog.eventBaseFields")
+	cfg.DatadogConfig.EventBaseFields = &map[string]interface{}{
+		"app_name":    "xd_rsync",
+		"environment": cfg.Environment,
+	}
+
+	for key, value := range parsedEventBaseFields {
+		(*cfg.DatadogConfig.EventBaseFields)[key] = value
 	}
 
 	fmt.Println("✅ Configuration validated!")
