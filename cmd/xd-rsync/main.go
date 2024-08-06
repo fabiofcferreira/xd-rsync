@@ -112,7 +112,7 @@ func main() {
 		Region: cfg.AwsRegion,
 		Logger: logger,
 	})
-	if err == nil {
+	if err != nil {
 		app.Logger.Fatal("failed_to_create__client", "Failed to create  client", &map[string]interface{}{
 			"error": err,
 		})
