@@ -10,14 +10,14 @@ import (
 var ErrProductJsonNotValid = fmt.Errorf("emitted product JSON is not valid")
 
 type XdProduct struct {
-	KeyId        string     `db:"KeyId"`
-	Description  string     `db:"Description"`
-	ShortName1   string     `db:"ShortName1"`
-	RetailPrice1 float64    `db:"RetailPrice1"`
-	RetailPrice2 float64    `db:"RetailPrice2"`
-	RetailPrice3 float64    `db:"RetailPrice3"`
-	CurrentStock float64    `db:"CurrentStock"`
-	SyncStamp    *time.Time `db:"SyncStamp"`
+	KeyId        string     `db:"KeyId" json:"keyId"`
+	Description  string     `db:"Description" json:"description"`
+	ShortName1   string     `db:"ShortName1" json:"shortName1"`
+	RetailPrice1 float64    `db:"RetailPrice1" json:"retailPrice1"`
+	RetailPrice2 float64    `db:"RetailPrice2" json:"retailPrice2"`
+	RetailPrice3 float64    `db:"RetailPrice3" json:"retailPrice3"`
+	CurrentStock float64    `db:"CurrentStock" json:"currentStock"`
+	SyncStamp    *time.Time `db:"SyncStamp" json:"syncStamp"`
 }
 
 func (p *XdProduct) GetTableName() string {
