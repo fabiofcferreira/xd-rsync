@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"sync"
 	"time"
 )
 
@@ -90,4 +91,22 @@ func (ps *XdProducts) ToJSON() (string, error) {
 	}
 
 	return string(bytes), nil
+}
+
+type XdProductsChunksWithMutex struct {
+	mutex  sync.Mutex
+	Chunks *map[int]XdProducts
+}
+
+func (c *XdProductsChunksWithMutex) UpdateChunk(index int, productsList *XdProducts) {
+	c.mutex.Lock()
+
+	defer c.mutex.Unlock()
+	(*c.Chunks)[index] = *productsList
+}
+
+func (c *XdProductsChunksWithMutex) GetList(list *XdProducts) {
+	for chunkNumber := 0; chunkNumber < len(*c.Chunks); chunkNumber++ {
+		*list = append(*list, (*c.Chunks)[chunkNumber]...)
+	}
 }

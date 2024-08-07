@@ -2,7 +2,6 @@ package database
 
 import (
 	"fmt"
-	"math"
 	"sync"
 	"time"
 
@@ -136,31 +135,32 @@ func (s DatabaseClient) GetPricedProducts() (*xd_rsync.XdProducts, error) {
 		"productsCount": pricedProductsCount,
 	})
 
-	chunksNeeded := int(math.Ceil(float64(pricedProductsCount) / 200))
-	chunkResults := make(map[int]*xd_rsync.XdProducts)
-	wg := sync.WaitGroup{}
+	numberOfPagesNeeded := GetPagesNeeded(pricedProductsCount, 200)
+	productsChunks := xd_rsync.XdProductsChunksWithMutex{
+		Chunks: &map[int]xd_rsync.XdProducts{},
+	}
 
-	for chunkNumber := 0; chunkNumber < chunksNeeded; chunkNumber++ {
+	wg := sync.WaitGroup{}
+	for pageNumber := 0; pageNumber < numberOfPagesNeeded; pageNumber++ {
 		wg.Add(1)
 
 		go func() {
 			var err error
-			chunkResults[chunkNumber], err = s.GetPaginatedPricedProducts(nil, 200, chunkNumber*200)
+			page, err := s.GetPaginatedPricedProducts(nil, 200, pageNumber*200)
 			if err != nil {
 				s.logger.Error("failed_get_priced_products_chunk", "Failed fetching priced products chunk", &map[string]interface{}{
 					"error": err,
 				})
 			}
 
+			productsChunks.UpdateChunk(pageNumber, page)
 			wg.Done()
 		}()
 	}
 
 	wg.Wait()
 
-	for chunkNumber := 0; chunkNumber < chunksNeeded; chunkNumber++ {
-		*products = append(*products, *chunkResults[chunkNumber]...)
-	}
+	productsChunks.GetList(products)
 
 	s.logger.Info("finished_get_all_priced_products", "Fetched all priced products in chunks", &map[string]interface{}{
 		"productsCount": pricedProductsCount,
@@ -177,17 +177,17 @@ func (s DatabaseClient) GetPricedProductsSinceTimestamp(ts *time.Time) (*xd_rsyn
 		"minimumTimestamp": ts,
 	})
 
-	chunksNeeded := int(math.Ceil(float64(pricedProductsCount) / 200))
-	fmt.Println("chunk", chunksNeeded)
-	chunkResults := make(map[int]*xd_rsync.XdProducts)
-	wg := sync.WaitGroup{}
+	numberOfPagesNeeded := GetPagesNeeded(pricedProductsCount, 200)
+	productsChunks := xd_rsync.XdProductsChunksWithMutex{
+		Chunks: &map[int]xd_rsync.XdProducts{},
+	}
 
-	for chunkNumber := 0; chunkNumber < chunksNeeded; chunkNumber++ {
+	wg := sync.WaitGroup{}
+	for pageNumber := 0; pageNumber < numberOfPagesNeeded; pageNumber++ {
 		wg.Add(1)
 
 		go func() {
-			var err error
-			chunkResults[chunkNumber], err = s.GetPaginatedPricedProducts(ts, 200, chunkNumber*200)
+			page, err := s.GetPaginatedPricedProducts(ts, 200, pageNumber*200)
 			if err != nil {
 				s.logger.Error("failed_get_all_priced_products_since_time", "Failed fetching priced products since timestamp", &map[string]interface{}{
 					"productsCount":    pricedProductsCount,
@@ -195,15 +195,14 @@ func (s DatabaseClient) GetPricedProductsSinceTimestamp(ts *time.Time) (*xd_rsyn
 				})
 			}
 
+			productsChunks.UpdateChunk(pageNumber, page)
 			wg.Done()
 		}()
 	}
 
 	wg.Wait()
 
-	for chunkNumber := 0; chunkNumber < chunksNeeded; chunkNumber++ {
-		*products = append(*products, *chunkResults[chunkNumber]...)
-	}
+	productsChunks.GetList(products)
 
 	s.logger.Info("finished_get_all_priced_products_since_time", "Fetched all priced products since timestamp", &map[string]interface{}{
 		"productsCount":    pricedProductsCount,
