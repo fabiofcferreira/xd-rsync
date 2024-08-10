@@ -33,7 +33,7 @@ func rsyncInDaemonMode(app *xd_rsync.XdRsyncInstance) {
 				continue
 			}
 
-			updatedProductsEvents := []string{}
+			updatedProductsEvents := []xd_rsync.MessagePublishInput{}
 			for _, product := range *products {
 				productDto, err := product.ToJSON()
 				if err != nil {
@@ -44,7 +44,10 @@ func rsyncInDaemonMode(app *xd_rsync.XdRsyncInstance) {
 					continue
 				}
 
-				updatedProductsEvents = append(updatedProductsEvents, productDto)
+				updatedProductsEvents = append(updatedProductsEvents, xd_rsync.MessagePublishInput{
+					Message:        productDto,
+					MessageGroupId: product.KeyId,
+				})
 			}
 
 			app.Logger.Info("count_changed_products_events", "Got all changed product events", &map[string]interface{}{
@@ -56,7 +59,7 @@ func rsyncInDaemonMode(app *xd_rsync.XdRsyncInstance) {
 				continue
 			}
 
-			successfulMessages, errors := app.Services.SNS.SendMessagesBatch(app.Config.Queues.ProductUpdatesSnsQueueArn, updatedProductsEvents)
+			successfulMessages, errors := app.Services.SNS.SendMessagesBatch(app.Config.Queues.ProductUpdatesSnsQueueArn, &updatedProductsEvents)
 			if len(errors) > 0 {
 				app.Logger.Info("failed_changed_product_events", "Failed to publish updated product event", &map[string]interface{}{
 					"error": errors,
