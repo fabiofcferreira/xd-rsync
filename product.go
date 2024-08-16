@@ -11,14 +11,13 @@ import (
 var ErrProductJsonNotValid = fmt.Errorf("emitted product JSON is not valid")
 
 type XdProduct struct {
-	KeyId        string     `db:"KeyId" json:"keyId"`
-	Description  string     `db:"Description" json:"description"`
-	ShortName1   string     `db:"ShortName1" json:"shortName1"`
-	RetailPrice1 float64    `db:"RetailPrice1" json:"retailPrice1"`
-	RetailPrice2 float64    `db:"RetailPrice2" json:"retailPrice2"`
-	RetailPrice3 float64    `db:"RetailPrice3" json:"retailPrice3"`
-	CurrentStock float64    `db:"CurrentStock" json:"currentStock"`
-	SyncStamp    *time.Time `db:"SyncStamp" json:"syncStamp"`
+	SKU               string     `db:"KeyId" dbSelector:"i.KeyId" json:"sku"`
+	Description       string     `db:"Description" dbSelector:"i.Description" json:"name"`
+	RetailPrice1      float64    `db:"RetailPrice1" dbSelector:"i.RetailPrice1" json:"clientCompareAtPrice"`
+	RetailPrice2      float64    `db:"RetailPrice2" dbSelector:"i.RetailPrice2" json:"clientPrice"`
+	AvailableQuantity float64    `db:"AvailableQuantity" dbSelector:"IFNULL(istock.AvailableQuantity, 0) as AvailableQuantity" json:"availableQuantity"`
+	SyncStamp         *time.Time `db:"SyncStamp" dbSelector:"i.SyncStamp as SyncStamp" json:"syncStamp"`
+	StockSyncStamp    *time.Time `db:"StockSyncStamp" dbSelector:"istock.SyncStamp as StockSyncStamp" json:"stockSyncStamp"`
 }
 
 func (p *XdProduct) GetTableName() string {
@@ -30,7 +29,7 @@ func (p *XdProduct) GetPrimaryKeyColumnName() string {
 
 	// Primary key is the first column
 	tag := val.Type().Field(0).Tag
-	return tag.Get("db")
+	return tag.Get("dbSelector")
 }
 
 func (p *XdProduct) GetKnownColumns() []string {
@@ -38,7 +37,7 @@ func (p *XdProduct) GetKnownColumns() []string {
 	val := reflect.ValueOf(p).Elem()
 	for i := 0; i < val.NumField(); i++ {
 		tag := val.Type().Field(i).Tag
-		columnNames = append(columnNames, tag.Get("db"))
+		columnNames = append(columnNames, tag.Get("dbSelector"))
 	}
 
 	return columnNames
@@ -71,7 +70,7 @@ func (p *XdProduct) ToJSON() (string, error) {
 type XdProducts []XdProduct
 
 func (ps *XdProducts) GetTableName() string {
-	return "items"
+	return "items i"
 }
 
 func (ps *XdProducts) GetPrimaryKeyColumnName() string {

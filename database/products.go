@@ -10,9 +10,13 @@ import (
 )
 
 var PRICED_PRODUCT_CONDITION = []string{
-	"RetailPrice1 > 0",
-	"RetailPrice2 > 0",
-	"RetailPrice3 > 0",
+	"i.RetailPrice2 > 0",
+}
+
+var ITEM_TO_ITEMSTOCK_JOIN_EXPRESSION = "LEFT JOIN xd.itemstock istock ON istock.ItemKeyId = i.KeyId"
+
+func getUpdatedAfterCondition(updatedAfter *time.Time) string {
+	return fmt.Sprintf("(i.SyncStamp > '%s' OR istock.SyncStamp > '%s')", formatTimestampToRFC3339(updatedAfter), formatTimestampToRFC3339(updatedAfter))
 }
 
 func (s DatabaseClient) GetProductByReferece(id string) (*xd_rsync.XdProduct, error) {
@@ -21,8 +25,11 @@ func (s DatabaseClient) GetProductByReferece(id string) (*xd_rsync.XdProduct, er
 		"reference": id,
 	})
 
-	query := buildSelectQuery(product.GetKnownColumnsQuerySelectors(), product.GetTableName(), []string{
-		"KeyId = ?",
+	query := joinAllExpressions([]string{
+		buildSelectTableExpression(product.GetKnownColumnsQuerySelectors(), product.GetTableName()),
+		buildWhereExpression([]string{
+			"KeyId = ?",
+		}),
 	})
 
 	err := s.db.Get(product, query, id)
@@ -45,9 +52,13 @@ func (s DatabaseClient) GetProductsByReferece(ids []string) (*xd_rsync.XdProduct
 		"references": ids,
 	})
 
-	query := buildSelectQuery(products.GetKnownColumnsQuerySelectors(), products.GetTableName(), []string{
-		"KeyId IN (?)",
+	query := joinAllExpressions([]string{
+		buildSelectTableExpression(products.GetKnownColumnsQuerySelectors(), products.GetTableName()),
+		buildWhereExpression([]string{
+			"KeyId IN (?)",
+		}),
 	})
+
 	processedQuery, args, err := sqlx.In(query, ids)
 	if err != nil {
 		s.logger.Error("failed_get_products_by_reference_query_build", "Failed to build query to fetch products by ID", &map[string]interface{}{
@@ -77,12 +88,17 @@ func (s DatabaseClient) GetPricedProductsCount(updatedAfter *time.Time) (int, er
 
 	conditions := PRICED_PRODUCT_CONDITION
 	if updatedAfter != nil {
-		conditions = append(conditions, fmt.Sprintf("SyncStamp > '%s'", formatTimestampToRFC3339(updatedAfter)))
+		conditions = append(conditions, getUpdatedAfterCondition(updatedAfter))
 	}
 
-	countQuery := buildSelectQuery(buildCountExpression(products.GetPrimaryKeyColumnName()), products.GetTableName(), conditions)
+	query := joinAllExpressions([]string{
+		buildSelectTableExpression(buildCountExpression(products.GetPrimaryKeyColumnName()), products.GetTableName()),
+		ITEM_TO_ITEMSTOCK_JOIN_EXPRESSION,
+		buildWhereExpression(conditions),
+	})
+
 	pricedProductsCount := 0
-	err := s.db.Get(&pricedProductsCount, countQuery)
+	err := s.db.Get(&pricedProductsCount, query)
 	if err != nil {
 		s.logger.Error("failed_get_count_all_priced_products", "Failed fetching count of all priced product", &map[string]interface{}{
 			"error": err,
@@ -103,13 +119,17 @@ func (s DatabaseClient) GetPaginatedPricedProducts(updatedAfter *time.Time, limi
 
 	conditions := PRICED_PRODUCT_CONDITION
 	if updatedAfter != nil {
-		conditions = append(conditions, fmt.Sprintf("SyncStamp > '%s'", formatTimestampToRFC3339(updatedAfter)))
+		conditions = append(conditions, getUpdatedAfterCondition(updatedAfter))
 	}
 
-	query := buildSelectQueryWithEndClauses(products.GetKnownColumnsQuerySelectors(), products.GetTableName(), conditions,
-		[]string{
-			buildLimitOffsetExpression(limit, offset),
-		})
+	query := joinAllExpressions([]string{
+		buildSelectTableExpression(products.GetKnownColumnsQuerySelectors(), products.GetTableName()),
+		ITEM_TO_ITEMSTOCK_JOIN_EXPRESSION,
+		buildWhereExpression(conditions),
+		buildLimitOffsetExpression(limit, offset),
+	})
+
+	fmt.Println("paginated_priced_products_query", query)
 
 	err := s.db.Select(products, query)
 	if err != nil {
