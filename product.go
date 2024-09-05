@@ -18,6 +18,8 @@ type XdProduct struct {
 	AvailableQuantity float64    `db:"AvailableQuantity" dbSelector:"IFNULL(istock.AvailableQuantity, 0) as AvailableQuantity" json:"availableQuantity"`
 	SyncStamp         *time.Time `db:"SyncStamp" dbSelector:"i.SyncStamp as SyncStamp" json:"syncStamp"`
 	StockSyncStamp    *time.Time `db:"StockSyncStamp" dbSelector:"istock.SyncStamp as StockSyncStamp" json:"stockSyncStamp"`
+	StockLastEntrance *time.Time `db:"StockLastEntrance" dbSelector:"istock.LastEntrance as StockLastEntrance" json:"stockLastEntrance"`
+	StockLastExit     *time.Time `db:"StockLastExit" dbSelector:"istock.LastExit as StockLastExit" json:"stockLastExit"`
 }
 
 func (p *XdProduct) GetTableName() string {

@@ -16,7 +16,7 @@ var PRICED_PRODUCT_CONDITION = []string{
 var ITEM_TO_ITEMSTOCK_JOIN_EXPRESSION = "LEFT JOIN xd.itemstock istock ON istock.ItemKeyId = i.KeyId"
 
 func getUpdatedAfterCondition(updatedAfter *time.Time) string {
-	return fmt.Sprintf("(i.SyncStamp > '%s' OR istock.SyncStamp > '%s')", formatTimestampToRFC3339(updatedAfter), formatTimestampToRFC3339(updatedAfter))
+	return fmt.Sprintf("(i.SyncStamp > '%s' OR istock.SyncStamp > '%s' OR istock.LastEntrance > '%s' OR istock.LastExit > '%s')", formatTimestampToRFC3339(updatedAfter), formatTimestampToRFC3339(updatedAfter))
 }
 
 func (s DatabaseClient) GetProductByReferece(id string) (*xd_rsync.XdProduct, error) {

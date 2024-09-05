@@ -86,3 +86,16 @@ Up to this point the only reason they can provide for being so strongly against 
 it's easier for them to maintain. Guess what, **it's 2024**, the PHP era has become the triassic era for devs, and distributed systems are more common than ever.
 
 After all, not only is it cheaper and easier to maintain distributed systems (if you're doing it right) but also scales much better than hosting everything in the same place.
+
+### How does it work
+
+The product changes are tracked using a combination of fields:
+
+| Change                                                    | DB Field                                                    |
+| --------------------------------------------------------- | ----------------------------------------------------------- |
+| Product details change                                    | Product table's sync timestamp: `items.SyncStamp`           |
+| Stock entry details change (not updated on entrance/exit) | Item stock table's sync timestamp: `itemstock.SyncStamp`    |
+| Stock entrance                                            | Item stock table's sync timestamp: `itemstock.LastEntrance` |
+| Stock exit                                                | Item stock table's sync timestamp: `itemstock.LastExit`     |
+
+Filtering the products whose tracking fields have changed since the last update, xd-rsync is able to then push the updates to the SNS topic provided.
