@@ -95,7 +95,7 @@ The product changes are tracked using a combination of fields:
 | --------------------------------------------------------- | ----------------------------------------------------------- |
 | Product details change                                    | Product table's sync timestamp: `items.SyncStamp`           |
 | Stock entry details change (not updated on entrance/exit) | Item stock table's sync timestamp: `itemstock.SyncStamp`    |
-| Stock entrance                                            | Item stock table's sync timestamp: `itemstock.LastEntrance` |
-| Stock exit                                                | Item stock table's sync timestamp: `itemstock.LastExit`     |
+| Stock entrance movement                                   | Item stock table's sync timestamp: `itemstock.LastEntrance` |
+| Stock exit movement                                       | Item stock table's sync timestamp: `itemstock.LastExit`     |
 
 Filtering the products whose tracking fields have changed since the last update, xd-rsync is able to then push the updates to the SNS topic provided.
