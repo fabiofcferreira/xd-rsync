@@ -91,11 +91,11 @@ After all, not only is it cheaper and easier to maintain distributed systems (if
 
 The product changes are tracked using a combination of fields:
 
-| Change                                                    | DB Field                                                    |
-| --------------------------------------------------------- | ----------------------------------------------------------- |
-| Product details change                                    | Product table's sync timestamp: `items.SyncStamp`           |
-| Stock entry details change (not updated on entrance/exit) | Item stock table's sync timestamp: `itemstock.SyncStamp`    |
-| Stock entrance movement                                   | Item stock table's sync timestamp: `itemstock.LastEntrance` |
-| Stock exit movement                                       | Item stock table's sync timestamp: `itemstock.LastExit`     |
+| Change                                                    | DB Field                                                              |
+| --------------------------------------------------------- | --------------------------------------------------------------------- |
+| Product details change                                    | Item sync timestamp: `items.SyncStamp`                                |
+| Stock entry details change (not updated on entrance/exit) | Item stock sync timestamp: `itemstock.SyncStamp`                      |
+| Stock entrance movement                                   | Item stock last entrance movement timestamp: `itemstock.LastEntrance` |
+| Stock exit movement                                       | Item stock last exit movement timestamp: `itemstock.LastExit`         |
 
 Filtering the products whose tracking fields have changed since the last update, xd-rsync is able to then push the updates to the SNS topic provided.
